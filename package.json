@@ -14,6 +14,9 @@
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.56.0",
+    "@radix-ui/react-label": "^2.1.8",
+    "@radix-ui/react-separator": "^1.1.8",
+    "@radix-ui/react-slot": "^1.2.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "convex": "^1.31.0",
@@ -21,7 +24,8 @@
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-router": "^7.11.0",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@convex-dev/eslint-plugin": "^1.1.1",
