@@ -12,6 +12,9 @@ import {
 import * as z from 'zod';
 import { Button } from '../ui/button';
 import { $ZodErrorTree } from 'zod/v4/core';
+import { useMutation } from 'convex/react';
+import { api } from '../../../convex/_generated/api';
+import { useNavigate } from 'react-router';
 
 const newPoll = z.object({
   question: z.string().trim().min(1, 'You must specify a question!'),
@@ -61,6 +64,9 @@ const hasError = (
 };
 
 export default function CreatePoll() {
+  const createPoll = useMutation(api.polls.create);
+  const navigate = useNavigate();
+
   const [question, setQuestion] = useState('');
   const [options, setOptions] = useState<string[]>(['']);
   const [error, setError] = useState<$ZodErrorTree<NewPoll> | null>(null);
@@ -74,12 +80,18 @@ export default function CreatePoll() {
     }
 
     const parse = newPoll.safeParse({ question, options: enteredOptions });
-    if (parse.success) {
-      console.log('success', parse.data);
-      setError(null);
-    } else {
+    if (!parse.success) {
       setError(z.treeifyError(parse.error));
+      return;
     }
+
+    createPoll({ question, options: enteredOptions })
+      .then((pollId) => {
+        navigate(`/poll/${pollId}`);
+      })
+      .catch((reason) => {
+        console.error('Failed', reason);
+      });
   };
 
   const setOption = (idx: number, option: string) => {
