@@ -16,5 +16,7 @@ export default defineSchema({
     poll: v.id('polls'),
     option: v.id('options'),
     user: v.optional(v.string())
-  }).index('by_Option', ['option'])
+  })
+    .index('by_Option', ['option'])
+    .index('by_Poll_by_User', ['poll', 'user'])
 });

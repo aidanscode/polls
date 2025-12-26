@@ -1,26 +1,45 @@
 import { useMutation, useQuery } from 'convex/react';
-import { useParams } from 'react-router';
+import { Link, useParams } from 'react-router';
 import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
-import { useCallback, useState } from 'react';
+import { useCallback } from 'react';
+import usePastVote from '@/hooks/PastVote';
+import { cn } from '@/lib/utils';
 
 export default function ViewPoll() {
-  const [voteId, setVoteId] = useState<Id<'votes'> | undefined>(undefined);
   const params = useParams();
   const pollId = params.id ?? null;
 
-  const vote = useMutation(api.polls.vote);
+  const { pastVote, cacheVote } = usePastVote(
+    pollId ? (pollId as Id<'polls'>) : null
+  );
+
+  const submitVote = useMutation(api.polls.vote);
   const poll = useQuery(api.polls.view, { id: pollId as Id<'polls'> });
 
   const handleVote = useCallback(
     async (option: Id<'options'>) => {
-      const newVoteId = await vote({ option, vote: voteId });
-      setVoteId(newVoteId);
+      const newVoteId = await submitVote({
+        option,
+        vote: pastVote ? pastVote.id : undefined
+      });
+
+      cacheVote(newVoteId, option);
     },
-    [vote, voteId]
+    [submitVote, pastVote, cacheVote]
   );
 
-  if (!poll) return null;
+  if (!poll)
+    return (
+      <div className='flex items-center flex-col'>
+        <h1 className='text-2xl text-red-600'>No poll found with this ID.</h1>
+        <h2 className='text-lg'>
+          <Link to='/' className='text-blue-500 underline'>
+            Return home?
+          </Link>
+        </h2>
+      </div>
+    );
 
   return (
     <div className='flex justify-center'>
@@ -30,7 +49,12 @@ export default function ViewPoll() {
         <div className='flex flex-col gap-2'>
           {poll.options.map((option) => (
             <div
-              className='flex flex-row gap-4 border p-2 text-lg hover:cursor-pointer hover:bg-neutral-300'
+              className={cn([
+                'flex flex-row gap-4 border p-2 text-lg hover:cursor-pointer hover:bg-neutral-300',
+                pastVote && pastVote.optionId === option._id
+                  ? 'border-2 border-blue-400 bg-blue-200'
+                  : null
+              ])}
               key={option._id}
               onClick={() => handleVote(option._id)}
             >

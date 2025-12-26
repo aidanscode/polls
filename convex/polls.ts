@@ -1,5 +1,6 @@
 import { Id } from './_generated/dataModel';
-import { mutation, query } from './_generated/server';
+import { internalMutation, mutation, query } from './_generated/server';
+import { internal } from './_generated/api';
 import { v } from 'convex/values';
 
 export const view = query({
@@ -11,7 +12,7 @@ export const view = query({
 
     const poll = await ctx.db.get(args.id);
     if (!poll) {
-      throw new Error('Poll does not exist');
+      return null;
     }
 
     const options = await Promise.all(
@@ -69,6 +70,14 @@ export const create = mutation({
       });
     }
 
+    await ctx.scheduler.runAfter(
+      1000 * 60 * 60 * 24 * 7,
+      internal.polls.deletePoll,
+      {
+        id: newPollId
+      }
+    );
+
     return newPollId;
   }
 });
@@ -102,5 +111,48 @@ export const vote = mutation({
     }
 
     return voteId;
+  }
+});
+
+export const getVoteForUser = query({
+  args: {
+    id: v.id('polls')
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) return null;
+
+    return await ctx.db
+      .query('votes')
+      .withIndex('by_Poll_by_User', (q) =>
+        q.eq('poll', args.id).eq('user', user.tokenIdentifier)
+      )
+      .first();
+  }
+});
+
+export const deletePoll = internalMutation({
+  args: { id: v.id('polls') },
+  handler: async (ctx, args) => {
+    const poll = await ctx.db.get(args.id);
+    if (!poll) return;
+
+    const votes = await ctx.db
+      .query('votes')
+      .withIndex('by_Poll_by_User', (q) => q.eq('poll', args.id))
+      .collect();
+    for (const vote of votes) {
+      await ctx.db.delete(vote._id);
+    }
+
+    const options = await ctx.db
+      .query('options')
+      .withIndex('by_Poll', (q) => q.eq('poll', args.id))
+      .collect();
+    for (const option of options) {
+      await ctx.db.delete(option._id);
+    }
+
+    await ctx.db.delete(poll._id);
   }
 });
