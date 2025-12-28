@@ -15,6 +15,7 @@ import { $ZodErrorTree } from 'zod/v4/core';
 import { useMutation } from 'convex/react';
 import { api } from '../../../convex/_generated/api';
 import { useNavigate } from 'react-router';
+import { motion } from 'motion/react';
 
 const newPoll = z.object({
   question: z.string().trim().min(1, 'You must specify a question!'),
@@ -142,30 +143,38 @@ export default function CreatePoll() {
                 </Field>
               </FieldGroup>
               <FieldGroup className='gap-1'>
-                {options.map((option, idx) => (
-                  <Field
-                    key={idx}
-                    className='gap-1'
-                    data-invalid={hasError(error, 'options', idx)}
-                  >
-                    <FieldLabel htmlFor={`option-${idx}`}>
-                      Option #{idx + 1}
-                    </FieldLabel>
-                    <Input
-                      id={`option-${idx}`}
-                      type='text'
-                      placeholder='Green'
-                      value={option}
-                      onChange={(e) => setOption(idx, e.target.value)}
-                      aria-invalid={hasError(error, 'options', idx)}
-                    />
-                    <FieldError errors={getErrors(error, 'options', idx)} />
-                  </Field>
-                ))}
+                {options.map((option, idx) => {
+                  const animation =
+                    idx === 0 ? {} : { animate: { x: 0 }, initial: { x: -20 } };
+                  return (
+                    <motion.div key={idx} {...animation}>
+                      <Field
+                        className='gap-1'
+                        data-invalid={hasError(error, 'options', idx)}
+                      >
+                        <FieldLabel htmlFor={`option-${idx}`}>
+                          Option #{idx + 1}
+                        </FieldLabel>
+                        <Input
+                          id={`option-${idx}`}
+                          type='text'
+                          placeholder='Green'
+                          value={option}
+                          onChange={(e) => setOption(idx, e.target.value)}
+                          aria-invalid={hasError(error, 'options', idx)}
+                        />
+                        <FieldError errors={getErrors(error, 'options', idx)} />
+                      </Field>
+                    </motion.div>
+                  );
+                })}
               </FieldGroup>
             </FieldSet>
             <Field>
               <Button type='submit'>Submit</Button>
+              <FieldDescription>
+                Your poll will automatically delete after 7 days!
+              </FieldDescription>
             </Field>
           </FieldGroup>
         </form>

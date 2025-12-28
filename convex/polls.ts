@@ -5,12 +5,15 @@ import { v } from 'convex/values';
 
 export const view = query({
   args: {
-    id: v.nullable(v.id('polls'))
+    id: v.nullable(v.string())
   },
   handler: async (ctx, args) => {
     if (args.id === null) return null;
 
-    const poll = await ctx.db.get(args.id);
+    const pollId = ctx.db.normalizeId('polls', args.id);
+    if (!pollId) return null;
+
+    const poll = await ctx.db.get(pollId);
     if (!poll) {
       return null;
     }

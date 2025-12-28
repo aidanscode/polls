@@ -1,10 +1,12 @@
 import { useMutation, useQuery } from 'convex/react';
-import { Link, useParams } from 'react-router';
+import { useParams } from 'react-router';
 import { api } from '../../../convex/_generated/api';
 import { Id } from '../../../convex/_generated/dataModel';
 import { useCallback } from 'react';
 import usePastVote from '@/hooks/PastVote';
 import { cn } from '@/lib/utils';
+import { motion } from 'motion/react';
+import PollNotFound from './PollNotFound';
 
 export default function ViewPoll() {
   const params = useParams();
@@ -29,17 +31,7 @@ export default function ViewPoll() {
     [submitVote, pastVote, cacheVote]
   );
 
-  if (!poll)
-    return (
-      <div className='flex items-center flex-col'>
-        <h1 className='text-2xl text-red-600'>No poll found with this ID.</h1>
-        <h2 className='text-lg'>
-          <Link to='/' className='text-blue-500 underline'>
-            Return home?
-          </Link>
-        </h2>
-      </div>
-    );
+  if (!poll) return <PollNotFound />;
 
   return (
     <div className='flex justify-center'>
@@ -48,7 +40,10 @@ export default function ViewPoll() {
 
         <div className='flex flex-col gap-2'>
           {poll.options.map((option) => (
-            <div
+            <motion.div
+              layout
+              animate
+              transition={{ type: 'spring', stiffness: 350, damping: 50 }}
               className={cn([
                 'flex flex-row gap-4 border p-2 text-lg hover:cursor-pointer hover:bg-neutral-300',
                 pastVote && pastVote.optionId === option._id
@@ -60,7 +55,7 @@ export default function ViewPoll() {
             >
               <span className='flex-1'>{option.text}</span>
               <span className='shrink'>({option.votes})</span>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
