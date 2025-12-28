@@ -2,6 +2,7 @@ import { Id } from './_generated/dataModel';
 import { internalMutation, mutation, query } from './_generated/server';
 import { internal } from './_generated/api';
 import { v } from 'convex/values';
+import { paginationOptsValidator } from 'convex/server';
 
 export const view = query({
   args: {
@@ -157,5 +158,21 @@ export const deletePoll = internalMutation({
     }
 
     await ctx.db.delete(poll._id);
+  }
+});
+
+export const mine = query({
+  args: {
+    paginationOpts: paginationOptsValidator
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.auth.getUserIdentity();
+    if (!user) throw new Error('Must be authed!');
+
+    return await ctx.db
+      .query('polls')
+      .withIndex('by_User', (q) => q.eq('user', user.tokenIdentifier))
+      .order('desc')
+      .paginate(args.paginationOpts);
   }
 });

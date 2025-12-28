@@ -1,9 +1,9 @@
 import { createBrowserRouter } from 'react-router';
 import Layout from './components/Layout';
 import CreatePoll from './components/polls/create';
-import AuthForm from './components/AuthForm';
 import ViewPoll from './components/polls/view';
 import NotFound from './components/NotFound';
+import MyPolls from './components/polls/my-polls';
 
 export const router = createBrowserRouter([
   {
@@ -11,8 +11,8 @@ export const router = createBrowserRouter([
     element: <Layout />,
     children: [
       { index: true, element: <CreatePoll /> },
-      { path: '/login', element: <AuthForm /> },
       { path: '/poll/:id', element: <ViewPoll /> },
+      { path: '/my-polls', element: <MyPolls /> },
       { path: '*', element: <NotFound /> }
     ]
   }

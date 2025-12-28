@@ -7,6 +7,7 @@ import usePastVote from '@/hooks/PastVote';
 import { cn } from '@/lib/utils';
 import { motion } from 'motion/react';
 import PollNotFound from './PollNotFound';
+import { RefreshCcw } from 'lucide-react';
 
 export default function ViewPoll() {
   const params = useParams();
@@ -30,6 +31,15 @@ export default function ViewPoll() {
     },
     [submitVote, pastVote, cacheVote]
   );
+
+  if (poll === undefined) {
+    return (
+      <div className='flex flex-col items-center'>
+        <RefreshCcw className='animate-spin' />
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   if (!poll) return <PollNotFound />;
 
